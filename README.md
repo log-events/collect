@@ -1,5 +1,7 @@
 # collect
 
+[![Build Status](https://travis-ci.org/log-events/collect.svg?branch=master)](https://travis-ci.org/log-events/collect)
+
 Receives logs in syslog format and sends them to elasticsearch.
 
 `collect.yml`:
