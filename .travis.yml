@@ -1,6 +1,11 @@
+sudo: required
 language: go
+services:
+- docker
 go:
 - 1.9
+before_install:
+- cp /etc/ssl/certs/ca-certificates.crt ca-certificates.crt
 install:
 - go get -u github.com/golang/dep/cmd/dep
 - dep ensure
@@ -11,6 +16,19 @@ script:
 - GOOS=linux go build -o collect_${VERSION}_linux
 - GOOS=freebsd go build -o collect_${VERSION}_freebsd
 - GOOS=darwin go build -o collect_${VERSION}_darwin
+- |
+  cat << EOF | docker build -t logevents/collect:${VERSION} -f - .
+  FROM scratch
+  ADD ca-certificates.crt /etc/ssl/certs/
+  ADD collect_${VERSION}_linux /collect
+  CMD ["/collect"]
+  EOF
+after_success:
+- docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+  docker tag logevents/collect:${VERSION} logevents/collect:latest;
+  fi
+- docker push logevents/collect
 deploy:
   provider: releases
   api_key: ${GITHUB_API_KEY}
