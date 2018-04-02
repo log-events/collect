@@ -108,9 +108,9 @@ func run(cmd *cobra.Command, args []string) {
 					logParts["structured_data"] = sd2
 				}
 			}
-			data := getDocumentFromLogParts(logParts, config.Elastic.Fields)
+			data, documentID := getDocumentFromLogParts(logParts, config.Elastic.Fields)
 
-			_, err = elastic.Index().Index(indexName).Type(config.Elastic.DocType).BodyJson(data).Do(context.Background())
+			_, err = elastic.Index().Index(indexName).Type(config.Elastic.DocType).Id(documentID).BodyJson(data).Do(context.Background())
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Could not add log entry: %s\n", err)
 			}
@@ -137,13 +137,22 @@ func resolveProperty(object map[string]interface{}, prop string) string {
 	return ""
 }
 
-func getDocumentFromLogParts(logParts syslog.LogParts, fields map[string]interface{}) map[string]interface{} {
+func getDocumentFromLogParts(logParts syslog.LogParts, fields map[string]interface{}) (map[string]interface{}, string) {
 	res := make(map[string]interface{})
-
+	documentID := ""
+	if logParts["timestamp"] != nil {
+		// If there is a timestamp, generate deterministic ids
+		seqID, _ := strconv.ParseInt(resolveProperty(logParts, "structured_data.meta.sequenceId"), 10, 64)
+		documentID = fmt.Sprintf("%d%010d", logParts["timestamp"].(time.Time).UTC().UnixNano()/1000, seqID)
+	}
 	for k, v := range fields {
 		// Timestamp is a special case
 		if v == "timestamp" {
 			res[k] = logParts["timestamp"].(time.Time).UTC().Format(time.RFC3339Nano)
+			continue
+		}
+		if v == "id" {
+			res[k] = documentID
 			continue
 		}
 		switch v.(type) {
@@ -168,7 +177,7 @@ func getDocumentFromLogParts(logParts syslog.LogParts, fields map[string]interfa
 
 		}
 	}
-	return res
+	return res, documentID
 }
 
 // stringifyKeysMapValue recurses into in and changes all instances of

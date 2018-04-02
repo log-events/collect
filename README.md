@@ -19,6 +19,7 @@ elastic:
     pid: proc_id
     ip: structured_data.origin.ip
     awsId: structured_data.origin.enterpriseId
+    id: id
     sequenceId:
       type: int
       field: structured_data.meta.sequenceId
@@ -33,4 +34,6 @@ elastic:
             type: date
           sequenceId:
             type: long
+          id:
+            type: string
 ```
