@@ -143,7 +143,7 @@ func getDocumentFromLogParts(logParts syslog.LogParts, fields map[string]interfa
 	if logParts["timestamp"] != nil {
 		// If there is a timestamp, generate deterministic ids
 		seqID, _ := strconv.ParseInt(resolveProperty(logParts, "structured_data.meta.sequenceId"), 10, 64)
-		documentID = fmt.Sprintf("%d%010d", logParts["timestamp"].(time.Time).UTC().UnixNano()/1000, seqID)
+		documentID = fmt.Sprintf("%016d%010d", logParts["timestamp"].(time.Time).UTC().UnixNano()/1000, seqID)
 	}
 	for k, v := range fields {
 		// Timestamp is a special case

@@ -35,5 +35,6 @@ elastic:
           sequenceId:
             type: long
           id:
-            type: string
+            type: keyword
+            ignore_above: 256
 ```
