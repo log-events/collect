@@ -12,14 +12,14 @@ elastic:
   index-format: logs-2006.01.02
   doc-type: log
   fields:
-    '@timestamp': timestamp
+    '@timestamp': timestampRFC3339
+    unixTime: timestampUnixNano
     message: message
     host: hostname
     ident: app_name
     pid: proc_id
     ip: structured_data.origin.ip
     awsId: structured_data.origin.enterpriseId
-    id: id
     sequenceId:
       type: int
       field: structured_data.meta.sequenceId
@@ -34,7 +34,6 @@ elastic:
             type: date
           sequenceId:
             type: long
-          id:
-            type: keyword
-            ignore_above: 256
+          unixTime:
+            type: long
 ```
